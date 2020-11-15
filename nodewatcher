@@ -1,20 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 # Netmon Nodewatcher (C) 2010-2012 Freifunk Oldenburg
 # License; GPL v3
 
-test -f /tmp/started || exit
+export SCRIPT_VERSION="59-sa"
 
-# Allow only one instance
-lockfile="/var/lock/${0##*/}.lock"
-if ! lock -n "$lockfile"; then
-	echo "Only one instance of $0 allowed."
-	exit 1
-fi
-trap "lock -u \"$lockfile\"" INT TERM EXIT
-
-[ -s /etc/config/nodewatcher ] || exit 1
-
-SCRIPT_DATA_FILE=$(uci get nodewatcher.@script[0].data_file)
+# Include settings
+set -a
+source settings.sh
+set +a
 
 debug() {
 	(>&2 echo "nodewatcher: $1")
@@ -23,11 +16,21 @@ debug() {
 #This method generates the crawl data XML file that is being fetched by netmon
 #and provided by a small local httpd
 crawl() {
-	debug "Putting all information into a XML-File and save it at $SCRIPT_DATA_FILE"
-
 	DATA="<?xml version='1.0' standalone='yes'?><data>"
 
-	for f in /usr/lib/nodewatcher.d/*.sh; do
+	# sanity check for UNIQUE_INTERFACE to prevent duplicate monitoring entries
+	if ! grep 'up\|unkonwn' "/sys/class/net/$UNIQUE_INTERFACE/operstate" >/dev/null; then
+		debug "UNIQUE_INTERFACE does not exist, or isn't administratively UP!"
+		exit 1
+	fi
+	if [[ " $IFACEBLACKLIST " =~ " $UNIQUE_INTERFACE " ]]; then
+		debug "UNIQUE_INTERFACE is blacklisted!"
+		exit 1
+	fi
+	UNIQUE_INTERFACE_MAC="$(ip addr show dev $UNIQUE_INTERFACE | awk '/ether/ { printf $2 }')"
+	[ -n "$UNIQUE_INTERFACE_MAC" ] || (debug "UNIQUE_INTERFACE_MAC is empty!"; exit 1)
+
+	for f in nodewatcher.d/*.sh; do
 		tmp="$($f)"
 		if [ $? -ne 0 ]; then
 			debug "Error when executing subscript $f, exiting!"
@@ -39,9 +42,7 @@ crawl() {
 	DATA="$DATA</data>"
 
 	#write data to xml file that provides the data on httpd
-	SCRIPT_DATA_DIR=$(dirname "$SCRIPT_DATA_FILE")
-	test -d "$SCRIPT_DATA_DIR" || mkdir -p "$SCRIPT_DATA_DIR"
-	echo "$DATA" | gzip | tee "$SCRIPT_DATA_FILE" | alfred -s 64
+	echo -n "{\"64\": {\"$UNIQUE_INTERFACE_MAC\": \"$DATA\"}}" | curl -H "Content-type: application/json; charset=UTF-8" --data-binary @- https://monitoring.freifunk-franken.de/api/alfred
 }
 
 LANG=C
