@@ -1,0 +1,53 @@
+#!/bin/sh
+# Netmon Nodewatcher (C) 2010-2012 Freifunk Oldenburg
+# License; GPL v3
+
+test -f /tmp/started || exit
+
+# Allow only one instance
+lockfile="/var/lock/${0##*/}.lock"
+if ! lock -n "$lockfile"; then
+	echo "Only one instance of $0 allowed."
+	exit 1
+fi
+trap "lock -u \"$lockfile\"" INT TERM EXIT
+
+[ -s /etc/config/nodewatcher ] || exit 1
+
+SCRIPT_DATA_FILE=$(uci get nodewatcher.@script[0].data_file)
+
+debug() {
+	(>&2 echo "nodewatcher: $1")
+}
+
+#This method generates the crawl data XML file that is being fetched by netmon
+#and provided by a small local httpd
+crawl() {
+	debug "Putting all information into a XML-File and save it at $SCRIPT_DATA_FILE"
+
+	DATA="<?xml version='1.0' standalone='yes'?><data>"
+
+	for f in /usr/lib/nodewatcher.d/*.sh; do
+		tmp="$($f)"
+		if [ $? -ne 0 ]; then
+			debug "Error when executing subscript $f, exiting!"
+			exit 1
+		fi
+		DATA="$DATA$tmp"
+	done
+
+	DATA="$DATA</data>"
+
+	#write data to xml file that provides the data on httpd
+	SCRIPT_DATA_DIR=$(dirname "$SCRIPT_DATA_FILE")
+	test -d "$SCRIPT_DATA_DIR" || mkdir -p "$SCRIPT_DATA_DIR"
+	echo "$DATA" | gzip | tee "$SCRIPT_DATA_FILE" | alfred -s 64
+}
+
+LANG=C
+
+#Erzeugt die statusdaten
+debug "Generate actual status data"
+crawl
+
+exit 0
