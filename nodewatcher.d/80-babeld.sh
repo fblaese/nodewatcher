@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if pgrep babeld >/dev/null; then
-	neighbours="$(echo dump | nc ::1 33123 | grep '^add neighbour' |
+	neighbours="$(printf "dump\nquit\n" | nc ::1 33123 | grep '^add neighbour' |
 		awk '{
 				for (i=2; i < NF; i += 2) {
 					vars[$i] = $(i+1)
