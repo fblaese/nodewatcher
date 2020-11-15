@@ -4,6 +4,8 @@
 
 export SCRIPT_VERSION="59-sa"
 
+cd "$(dirname "$0")"
+
 # Include settings
 set -a
 source settings.sh
