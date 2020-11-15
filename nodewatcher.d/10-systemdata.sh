@@ -37,13 +37,6 @@ memory=$(awk '
 ' /proc/meminfo)
 SYSTEM_DATA="$SYSTEM_DATA$memory"
 
-cpu=$(awk -F': ' '
-	/model/ { printf "<cpu>"$2"</cpu>" }
-	/system type/ { printf "<chipset>"$2"</chipset>" }
-	/platform/ { printf "<chipset>"$2"</chipset>" }
-' /proc/cpuinfo)
-SYSTEM_DATA="$SYSTEM_DATA$cpu"
-
 SYSTEM_DATA="$SYSTEM_DATA<model>$MODEL</model>"
 
 SYSTEM_DATA="$SYSTEM_DATA<local_time>$(date +%s)</local_time>"
