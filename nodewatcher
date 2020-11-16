@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Netmon Nodewatcher (C) 2010-2012 Freifunk Oldenburg
 # License; GPL v3
 
@@ -25,7 +25,7 @@ crawl() {
 		debug "UNIQUE_INTERFACE does not exist, or isn't administratively UP!"
 		exit 1
 	fi
-	if [[ " $IFACEBLACKLIST " =~ " $UNIQUE_INTERFACE " ]]; then
+	if echo " $IFACEBLACKLIST " | grep " $UNIQUE_INTERFACE " &>/dev/null; then
 		debug "UNIQUE_INTERFACE is blacklisted!"
 		exit 1
 	fi
