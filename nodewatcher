@@ -44,7 +44,7 @@ crawl() {
 	DATA="$DATA</data>"
 
 	#write data to xml file that provides the data on httpd
-	echo -n "{\"64\": {\"$UNIQUE_INTERFACE_MAC\": \"$DATA\"}}" | curl -H "Content-type: application/json; charset=UTF-8" --data-binary @- https://monitoring.freifunk-franken.de/api/alfred
+	echo -n "{\"$UNIQUE_INTERFACE_MAC\": \"$DATA\"}" | curl -H "Content-type: application/json; charset=UTF-8" --data-binary @- https://monitoring.freifunk-franken.de/api/alfred2
 }
 
 LANG=C
