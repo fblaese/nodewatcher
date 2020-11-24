@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 
 # Include settings
 set -a
-source settings.sh
+. ./settings.sh
 set +a
 
 debug() {
@@ -25,7 +25,7 @@ crawl() {
 		debug "UNIQUE_INTERFACE does not exist, or isn't administratively UP!"
 		exit 1
 	fi
-	if echo " $IFACEBLACKLIST " | grep " $UNIQUE_INTERFACE " &>/dev/null; then
+	if echo " $IFACEBLACKLIST " | grep " $UNIQUE_INTERFACE " >/dev/null 2>&1; then
 		debug "UNIQUE_INTERFACE is blacklisted!"
 		exit 1
 	fi
