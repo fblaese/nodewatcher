@@ -2,7 +2,7 @@
 # Netmon Nodewatcher (C) 2010-2012 Freifunk Oldenburg
 # License; GPL v3
 
-export SCRIPT_VERSION="59-sa1"
+export SCRIPT_VERSION="59-sa2"
 
 cd "$(dirname "$0")"
 
