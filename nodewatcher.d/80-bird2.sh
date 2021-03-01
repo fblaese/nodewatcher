@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 set -o pipefail
 
-neighbours="$(birdc -r show babel neighbors |
+neighbours="$(/usr/sbin/birdc -r show babel neighbors |
 		tail -n +5 |
 		awk '{ printf "<neighbour><ip>%s</ip><outgoing_interface>%s</outgoing_interface><link_cost>%s</link_cost></neighbour>", $1, $2, $3 }'
 	)"
