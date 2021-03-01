@@ -11,7 +11,7 @@ debug "Collecting basic system status data"
 SYSTEM_DATA="<status>online</status>"
 
 hostname="$(cat /proc/sys/kernel/hostname)"
-mac=$(awk '{ mac=toupper($1); gsub(":", "", mac); print mac }' /sys/class/net/br-mesh/address 2>/dev/null)
+mac=$(awk '{ mac=toupper($1); gsub(":", "", mac); print mac }' /sys/class/net/br-client/address 2>/dev/null)
 [ "$hostname" = "OpenWrt" ] && hostname="$mac"
 [ "$hostname" = "FFF" ] && hostname="$mac"
 SYSTEM_DATA="$SYSTEM_DATA<hostname>$hostname</hostname>"
@@ -31,6 +31,7 @@ SYSTEM_DATA="$SYSTEM_DATA$uptime"
 
 memory=$(awk '
 	/^MemTotal/ { printf "<memory_total>"$2"</memory_total>" }
+	/^MemAvail/ { printf "<memory_available>"$2"</memory_available>" }
 	/^Cached:/ { printf "<memory_caching>"$2"</memory_caching>" }
 	/^Buffers/ { printf "<memory_buffering>"$2"</memory_buffering>" }
 	/^MemFree/ { printf "<memory_free>"$2"</memory_free>" }
